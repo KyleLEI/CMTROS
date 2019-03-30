@@ -29,9 +29,8 @@ const string WIN_NAME = "CMT Node";
 const float scale = 0.5;
 
 #ifdef CMT_DISPLAY
-void display(Mat im, CMT & cmt)
-{
-    //Visualize the output
+void display(Mat im, CMT & cmt){
+    /* Visualize the output */
     //It is ok to draw on im itself, as CMT only uses the grayscale image
     for(size_t i = 0; i < cmt.points_active.size(); i++)
     {
@@ -70,12 +69,12 @@ int main(int argc, char *argv[]){
     Rect rect; 
     namedWindow(WIN_NAME);
     
-    // Initialize ROS
+    /* Initialize ROS */
     ros::init(argc,argv,"cmt_node");
     ros::NodeHandle n("~");
     Publisher pub = n.advertise<Polygon>("cmt_output",10);
 
-    // Initialize the input device
+    /* Initialize the input device */
     VideoCapture cap;
     cap.open(0); // opens the default camera
     if(!cap.isOpened()){
@@ -83,7 +82,7 @@ int main(int argc, char *argv[]){
         return -1;
     }
     
-    // Show preview until a key is pressed
+    /* Show preview until a key is pressed */
     Mat preview;
     char k;
     while(true){
@@ -95,16 +94,16 @@ int main(int argc, char *argv[]){
             break;
     }
 
-    // Get the initial bounding box
+    /* Get the initial bounding box */
     Mat im0;
     cap >> im0;
     resize(im0,im0,Size(),scale,scale);
     rect = getRect(im0,WIN_NAME);
     ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
     
-    // Configure and initialize CMT with grayscale image
+    /* Configure and initialize CMT with grayscale image */
     //cmt.consensus.estimate_scale = false;
-    cmt.consensus.estimate_rotation = true;
+    //cmt.consensus.estimate_rotation = true;
     Mat im0_gray;
     cvtColor(im0,im0_gray,CV_BGR2GRAY);
     cmt.initialize(im0_gray,rect);
@@ -114,16 +113,16 @@ int main(int argc, char *argv[]){
 #endif
     clock_t begin,end;
     int time_elapsed;
-    // Main loop
+    /* Main loop */
     while(ros::ok()){
-        // Read and resizethe input frame
+        /* Read and resize the input frame */
         Mat im;
-        Mat im_gray;
+        Mat im_gray; // Mat performs shallow copy, has to allocate every time
         cap >> im;
         resize(im,im,Size(),scale,scale);
         cvtColor(im,im_gray,CV_BGR2GRAY);
 
-        // Process the frame with CMT and log the time
+        /* Process the frame with CMT and log the time */
         // TODO: test whether allocation every loop or clone is faster
         begin = clock();
         cmt.processFrame(im_gray);
@@ -132,7 +131,7 @@ int main(int argc, char *argv[]){
         ROS_INFO("Time: %dms, active features: %lu",time_elapsed,cmt.points_active.size());
 
 #ifdef CMT_DISPLAY
-        // Display the image
+        /* Display the image */
         display(im,cmt);
 #endif
         sendtoROS(pub,cmt);
