@@ -136,7 +136,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/cmt_node.cpp)
-add_executable (cmt src/common.cpp src/gui.cpp src/main.cpp
+add_executable (cmt_node src/common.cpp src/gui.cpp src/main.cpp
     src/CMT.cpp src/Consensus.cpp src/Fusion.cpp src/Matcher.cpp src/Tracker.cpp
     src/fastcluster/fastcluster.cpp)
 
@@ -154,7 +154,10 @@ add_executable (cmt src/common.cpp src/gui.cpp src/main.cpp
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(cmt ${OpenCV_LIBS})
+target_link_libraries(cmt_node 
+    ${OpenCV_LIBS}
+    ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

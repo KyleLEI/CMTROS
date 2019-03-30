@@ -8,8 +8,6 @@ namespace cmt {
 void Matcher::initialize(const vector<Point2f> & pts_fg_norm, const Mat desc_fg, const vector<int> & classes_fg,
         const Mat desc_bg, const Point2f center)
 {
-    FILE_LOG(logDEBUG) << "Matcher::initialize() call";
-
     //Copy normalized points
     this->pts_fg_norm = pts_fg_norm;
 
@@ -36,18 +34,14 @@ void Matcher::initialize(const vector<Point2f> & pts_fg_norm, const Mat desc_fg,
 
     //Create descriptor matcher
     bfmatcher = DescriptorMatcher::create("BruteForce-Hamming");
-
-    FILE_LOG(logDEBUG) << "Matcher::initialize() return";
 }
 
 void Matcher::matchGlobal(const vector<KeyPoint> & keypoints, const Mat descriptors,
         vector<Point2f> & points_matched, vector<int> & classes_matched)
 {
-    FILE_LOG(logDEBUG) << "Matcher::matchGlobal() call";
 
     if (keypoints.size() == 0)
     {
-        FILE_LOG(logDEBUG) << "Matcher::matchGlobal() return";
         return;
     }
 
@@ -69,18 +63,13 @@ void Matcher::matchGlobal(const vector<KeyPoint> & keypoints, const Mat descript
         points_matched.push_back(keypoints[i].pt);
         classes_matched.push_back(matched_class);
     }
-
-    FILE_LOG(logDEBUG) << "Matcher::matchGlobal() return";
 }
 
 void Matcher::matchLocal(const vector<KeyPoint> & keypoints, const Mat descriptors,
         const Point2f center, const float scale, const float rotation,
         vector<Point2f> & points_matched, vector<int> & classes_matched)
 {
-    FILE_LOG(logDEBUG) << "Matcher::matchLocal() call";
-
     if (keypoints.size() == 0) {
-        FILE_LOG(logDEBUG) << "Matcher::matchLocal() return";
         return;
     }
 
@@ -136,8 +125,6 @@ void Matcher::matchLocal(const vector<KeyPoint> & keypoints, const Mat descripto
         points_matched.push_back(keypoints[i].pt);
         classes_matched.push_back(matched_class);
     }
-
-    FILE_LOG(logDEBUG) << "Matcher::matchLocal() return";
 }
 
 } /* namespace CMT */

@@ -8,7 +8,7 @@
 
 #include <opencv2/core/core.hpp>
 
-#include "logging/log.h"
+#include <ros/console.h>
 
 using cv::Mat;
 using cv::Point2f;

@@ -12,8 +12,6 @@ namespace cmt {
 
 void Consensus::initialize(const vector<Point2f> & points_normalized)
 {
-    FILE_LOG(logDEBUG) << "Consensus::initialize() call";
-
     //Copy normalized points
     this->points_normalized = points_normalized;
 
@@ -37,8 +35,6 @@ void Consensus::initialize(const vector<Point2f> & points_normalized)
         }
 
     }
-
-    FILE_LOG(logDEBUG) << "Consensus::initialize() return";
 }
 
 
@@ -46,8 +42,6 @@ void Consensus::initialize(const vector<Point2f> & points_normalized)
 void Consensus::estimateScaleRotation(const vector<Point2f> & points, const vector<int> & classes,
         float & scale, float & rotation)
 {
-    FILE_LOG(logDEBUG) << "Consensus::estimateScaleRotation() call";
-
     //Compute pairwise changes in scale/rotation
     vector<float> changes_scale;
     if (estimate_scale) changes_scale.reserve(points.size()*points.size());
@@ -95,23 +89,17 @@ void Consensus::estimateScaleRotation(const vector<Point2f> & points, const vect
 
     if (changes_angles.size() < 2) rotation = 0;
     else rotation = median(changes_angles);
-
-    FILE_LOG(logDEBUG) << "Consensus::estimateScaleRotation() return";
 }
 
 void Consensus::findConsensus(const vector<Point2f> & points, const vector<int> & classes,
         const float scale, const float rotation,
         Point2f & center, vector<Point2f> & points_inlier, vector<int> & classes_inlier)
 {
-    FILE_LOG(logDEBUG) << "Consensus::findConsensus() call";
-
     //If no points are available, reteurn nan
     if (points.size() == 0)
     {
         center.x = numeric_limits<float>::quiet_NaN();
         center.y = numeric_limits<float>::quiet_NaN();
-
-        FILE_LOG(logDEBUG) << "Consensus::findConsensus() return";
 
         return;
     }
@@ -140,10 +128,7 @@ void Consensus::findConsensus(const vector<Point2f> & points, const vector<int> 
             index++;
         }
     }
-
-    FILE_LOG(logDEBUG) << "Consensus::MST_linkage_core() call";
     MST_linkage_core(N,D,Z);
-    FILE_LOG(logDEBUG) << "Consensus::MST_linkage_core() return";
 
     union_find nodes(N);
 
@@ -210,8 +195,6 @@ void Consensus::findConsensus(const vector<Point2f> & points, const vector<int> 
     delete[] D;
 	delete[] S;
 	delete[] T;
-
-    FILE_LOG(logDEBUG) << "Consensus::findConsensus() return";
 }
 
 } /* namespace cmt */
