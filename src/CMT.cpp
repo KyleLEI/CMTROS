@@ -105,7 +105,7 @@ void CMT::initialize(const Mat im_gray, const Rect rect)
 
 }
 
-void CMT::processFrame(Mat im_gray) {
+void CMT::processFrame(Mat im_gray) { // the argument passed is a shallow copy!
 
 
     //Track keypoints
@@ -173,7 +173,7 @@ void CMT::processFrame(Mat im_gray) {
     bb_rot = RotatedRect(center,  size_initial * scale, rotation/CV_PI * 180);
 
     //Remember current image
-    im_prev = im_gray;
+    im_prev = im_gray; // this is also a shallow copy!
 }
 
 } /* namespace CMT */
