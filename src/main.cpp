@@ -16,8 +16,10 @@ using cv::VideoCapture;
 using cv::waitKey;
 using std::min_element;
 using std::max_element;
-/*
-int display(Mat im, CMT & cmt)
+
+const string WIN_NAME = "CMT Node";
+
+void display(Mat im, CMT & cmt)
 {
     //Visualize the output
     //It is ok to draw on im itself, as CMT only uses the grayscale image
@@ -34,12 +36,10 @@ int display(Mat im, CMT & cmt)
     }
 
     imshow(WIN_NAME, im);
-
-    return waitKey(5);
-}*/
+    waitKey(10);
+}
 
 int main(int argc, char *argv[]){
-    const string WIN_NAME = "CMT Node"; 
     CMT cmt;
     Rect rect; 
     namedWindow(WIN_NAME);
@@ -69,10 +69,27 @@ int main(int argc, char *argv[]){
     rect = getRect(im0,WIN_NAME);
     ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
     
-    // Initialize CMT
+    // Initialize CMT with grayscale image
     Mat im0_gray;
     cvtColor(im0,im0_gray,CV_BGR2GRAY);
     cmt.initialize(im0_gray,rect);
+
+    // Main loop
+    
+    
+    while(true){
+        Mat im;
+        cap >> im;
+        Mat im_gray;
+        cvtColor(im,im_gray,CV_BGR2GRAY);
+
+        // Process the frame with CMT
+        cmt.processFrame(im_gray);
+        ROS_INFO("Active features: %lu",cmt.points_active.size());
+
+        // Display the image
+        display(im,cmt);
+    }
 
     return 0;
 }
