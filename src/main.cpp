@@ -12,6 +12,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <geometry_msgs/Polygon.h>
+#include <sensor_msgs/Image.h>
+#include <cv_bridge/cv_bridge.h>
 
 using cmt::CMT;
 using cv::namedWindow;
@@ -19,14 +21,21 @@ using cv::Scalar;
 using cv::VideoCapture;
 using cv::waitKey;
 using cv::Size;
+using cv_bridge::CvImagePtr;
+using cv_bridge::toCvCopy;
 using std::min_element;
 using std::max_element;
 using ros::Publisher;
+using ros::Subscriber;
 using geometry_msgs::Polygon;
 using geometry_msgs::Point32;
+using sensor_msgs::ImageConstPtr;
 
 const string WIN_NAME = "CMT Node";
 const float scale = 0.5;
+
+CMT* cmt_ptr = nullptr;
+Publisher pub;
 
 #ifdef CMT_DISPLAY
 void display(Mat im, CMT & cmt){
@@ -49,7 +58,7 @@ void display(Mat im, CMT & cmt){
 }
 #endif
 
-void sendtoROS(Publisher& pub, CMT& cmt){
+void sendtoROS(CMT& cmt){
     Point2f vertices[4];
     cmt.bb_rot.points(vertices);
     
@@ -64,78 +73,51 @@ void sendtoROS(Publisher& pub, CMT& cmt){
     pub.publish(pol);
 }
 
+void bluefoxCallback(const ImageConstPtr& im){
+    if(cmt_ptr == nullptr){
+        /* Initialize cmt */
+        cmt_ptr = new CMT();
+
+        /* Get the initial bounding box */
+        CvImagePtr im0_ptr;
+        Rect rect;
+        im0_ptr = toCvCopy(im,"mono8");
+        resize(im0_ptr->image,im0_ptr->image,Size(),scale,scale);
+        rect = getRect(im0_ptr->image,WIN_NAME);
+        ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
+
+        // cmt_ptr->consensus.estimate_rotation = true;
+        cmt_ptr->initialize(im0_ptr->image,rect);
+#ifndef CMT_DISPLAY
+        cv::destroyWindow(WIN_NAME);
+#endif
+    }else{
+        clock_t begin,end;
+        int time_elapsed;
+        CvImagePtr im_ptr = toCvCopy(im,"mono8");
+        resize(im_ptr->image,im_ptr->image,Size(),0.5,0.5);
+        
+        begin = clock();
+        cmt_ptr->processFrame(im_ptr->image);
+        end = clock();
+        time_elapsed = (end-begin)*1.0/CLOCKS_PER_SEC*1000;
+        ROS_INFO("Time: %dms, active features: %lu",time_elapsed,cmt_ptr->points_active.size());
+
+#ifdef CMT_DISPLAY
+        /* Display the image */
+        display(im_ptr->image,*cmt_ptr);
+#endif
+        sendtoROS(*cmt_ptr);
+    }   
+}
+
 int main(int argc, char *argv[]){
-    CMT cmt;
-    Rect rect; 
     namedWindow(WIN_NAME);
     
     /* Initialize ROS */
     ros::init(argc,argv,"cmt_node");
     ros::NodeHandle n("~");
-    Publisher pub = n.advertise<Polygon>("cmt_output",10);
-
-    /* Initialize the input device */
-    VideoCapture cap;
-    cap.open(0); // opens the default camera
-    if(!cap.isOpened()){
-        ROS_ERROR("Unable to open video input");
-        return -1;
-    }
-    
-    /* Show preview until a key is pressed */
-    Mat preview;
-    char k;
-    while(true){
-        cap >> preview;
-        screenLog(preview,"Press any key to start specifying the drone to follow");
-        imshow(WIN_NAME,preview);
-        k = waitKey(10);
-        if(k!=-1)
-            break;
-    }
-
-    /* Get the initial bounding box */
-    Mat im0;
-    cap >> im0;
-    resize(im0,im0,Size(),scale,scale);
-    rect = getRect(im0,WIN_NAME);
-    ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
-    
-    /* Configure and initialize CMT with grayscale image */
-    //cmt.consensus.estimate_scale = false;
-    //cmt.consensus.estimate_rotation = true;
-    Mat im0_gray;
-    cvtColor(im0,im0_gray,CV_BGR2GRAY);
-    cmt.initialize(im0_gray,rect);
-
-#ifndef CMT_DISPLAY
-    cv::destroyWindow(WIN_NAME);
-#endif
-    clock_t begin,end;
-    int time_elapsed;
-    /* Main loop */
-    while(ros::ok()){
-        /* Read and resize the input frame */
-        Mat im;
-        Mat im_gray; // Mat performs shallow copy, has to allocate every time
-        cap >> im;
-        resize(im,im,Size(),scale,scale);
-        cvtColor(im,im_gray,CV_BGR2GRAY);
-
-        /* Process the frame with CMT and log the time */
-        // TODO: test whether allocation every loop or clone is faster
-        begin = clock();
-        cmt.processFrame(im_gray);
-        end = clock();
-        time_elapsed = (end-begin)*1.0/CLOCKS_PER_SEC*1000;
-        ROS_INFO("Time: %dms, active features: %lu",time_elapsed,cmt.points_active.size());
-
-#ifdef CMT_DISPLAY
-        /* Display the image */
-        display(im,cmt);
-#endif
-        sendtoROS(pub,cmt);
-    }
-
-    return 0;
+    pub = n.advertise<Polygon>("cmt_output",10);
+    Subscriber sub = n.subscribe("/camera/image_raw",10,bluefoxCallback);
+    ros::spin();
 }
