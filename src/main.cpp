@@ -76,7 +76,8 @@ int main(int argc, char *argv[]){
 
     /* Initialize the input device */
     VideoCapture cap;
-    cap.open(0); // opens the default camera
+    //cap.open(1); // opens the default camera
+    cap.open("/home/dji/Desktop/slow.flv");
     if(!cap.isOpened()){
         ROS_ERROR("Unable to open video input");
         return -1;
