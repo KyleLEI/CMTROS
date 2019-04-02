@@ -13,9 +13,17 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV REQUIRED)
 
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES cmt
+#  CATKIN_DEPENDS geometry_msgs roscpp
+#  DEPENDS system_lib
+)
+
 ###########
 ## Build ##
 ###########
+
 add_definitions ("-Wall")
 
 include_directories(
@@ -33,4 +41,5 @@ target_link_libraries(cmt_node
     ${OpenCV_LIBS}
     ${catkin_LIBRARIES}
 )
+
 
