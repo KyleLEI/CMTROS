@@ -25,7 +25,8 @@ class Kalman_filter(object):
         self.kalman = cv2.KalmanFilter(4, 4)
         self.kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
         self.kalman.transitionMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
-        self.kalman.processNoiseCov = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32) * 0.3
+        self.kalman.processNoiseCov = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32) * 10
+        self.kalman.measurementNoiseCov = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32) * 30
 
 
     def update(self, Z):
@@ -33,8 +34,9 @@ class Kalman_filter(object):
         self.last_prediction = self.current_prediction
 
         self.current_measurement = Z
-        self.kalman.correct(self.current_measurement)
+        self.kalman.correct(self.current_measurement)        
         self.current_prediction = self.kalman.predict()
+        
 
 
 
@@ -51,13 +53,18 @@ class Subscriber(object):
 
     def callback_cmt(self, data):
         print "received data: ", data
-        width = max(abs(data.points[1].x - data.points[0].x), abs(data.points[2].x - data.points[0].x), abs(data.points[3].x - data.points[0].x))
-        height = max(abs(data.points[1].y - data.points[0].y), abs(data.points[2].y - data.points[0].y), abs(data.points[3].y - data.points[0].y))
-        center_x = min(data.points[0].x, data.points[1].x, data.points[2].x, data.points[3].x) + 0.5 * width
-        center_y = min(data.points[0].y, data.points[1].y, data.points[2].y, data.points[3].y) + 0.5 * height
+        if data.points[0].z > 20:
+            width = max(abs(data.points[1].x - data.points[0].x), abs(data.points[2].x - data.points[0].x), abs(data.points[3].x - data.points[0].x))
+            height = max(abs(data.points[1].y - data.points[0].y), abs(data.points[2].y - data.points[0].y), abs(data.points[3].y - data.points[0].y))
+            center_x = min(data.points[0].x, data.points[1].x, data.points[2].x, data.points[3].x) + 0.5 * width
+            center_y = min(data.points[0].y, data.points[1].y, data.points[2].y, data.points[3].y) + 0.5 * height
 
-        Z = np.array([[np.float32(center_x)], [np.float32(center_y)], [np.float32(width)], [np.float32(height)]])
-        self.kalman_filter.update(Z)
+            Z = np.array([[np.float32(center_x)], [np.float32(center_y)], [np.float32(width)], [np.float32(height)]])
+            self.kalman_filter.update(Z)
+        
+        print("kalman filter gain:")        
+        print self.kalman_filter.kalman.gain
+
 
         new_data = Polygon()
         new_data.points = [Point32(),Point32(),Point32(),Point32(),Point32(),Point32()]
