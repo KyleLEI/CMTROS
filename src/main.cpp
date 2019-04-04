@@ -63,23 +63,20 @@ void sendtoROS(Publisher& pub, CMT& cmt){
         p.y = vertices[i].y;
         pol.points.push_back(p);
     }
+    pol.points[0].z = cmt.points_active.size();
     pub.publish(pol);
 }
 
 void KFCallback(const Polygon::ConstPtr& p){
-    ROS_INFO("KF Callback");
     for(int i=2;i<=5;i++){
         kf_rect[i-2][0] = p->points[i].x;
         kf_rect[i-2][1] = p->points[i].y;
-        ROS_INFO("Received Vertex: %f,%f",kf_rect[i-2][0],kf_rect[i-2][1]);
     }
 }
 
 void drawKFRect(Mat& im){
-    for (int i = 0; i < 4; i++){
-        line(im, Point2f(kf_rect[i][0],kf_rect[i][1]), Point2f(kf_rect[(i+1)%4][0],kf_rect[(i+1)%4][1]), Scalar(255,255,0));
-        //ROS_INFO("Drawn Vertex: %f,%f",kf_rect[i][0],kf_rect[i][1]);
-    }
+    for (int i = 0; i < 4; i++)
+        line(im, Point2f(kf_rect[i][0],kf_rect[i][1]), Point2f(kf_rect[(i+1)%4][0],kf_rect[(i+1)%4][1]), Scalar(0,255,255));
 }
 
 int main(int argc, char *argv[]){
