@@ -60,11 +60,25 @@ class Subscriber(object):
         self.kalman_filter.update(Z)
 
         new_data = Polygon()
-        new_data.points = [Point32(),Point32()]
+        new_data.points = [Point32(),Point32(),Point32(),Point32(),Point32(),Point32()]
         new_data.points[0].x = self.kalman_filter.current_prediction[0] # center_x
         new_data.points[0].y = self.kalman_filter.current_prediction[1] # center_y
         new_data.points[1].x = self.kalman_filter.current_prediction[2] # width
         new_data.points[1].y = self.kalman_filter.current_prediction[3] # height
+        
+        new_data.points[2].x = new_data.points[0].x + 0.5 * new_data.points[1].x
+        new_data.points[2].y = new_data.points[0].y + 0.5 * new_data.points[1].y
+
+        new_data.points[3].x = new_data.points[0].x + 0.5 * new_data.points[1].x
+        new_data.points[3].y = new_data.points[0].y - 0.5 * new_data.points[1].y
+
+        new_data.points[4].x = new_data.points[0].x - 0.5 * new_data.points[1].x
+        new_data.points[4].y = new_data.points[0].y - 0.5 * new_data.points[1].y
+
+        new_data.points[5].x = new_data.points[0].x - 0.5 * new_data.points[1].x
+        new_data.points[5].y = new_data.points[0].y + 0.5 * new_data.points[1].y
+
+
         self.pub_kalman.publish(new_data)
 
 

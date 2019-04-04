@@ -27,7 +27,8 @@ using geometry_msgs::Polygon;
 using geometry_msgs::Point32;
 
 const string WIN_NAME = "CMT Node";
-const float scale = 0.5;
+const float scale = 0.75;
+float kf_rect[4][2];
 
 #ifdef CMT_DISPLAY
 void display(Mat im, CMT & cmt){
@@ -65,6 +66,22 @@ void sendtoROS(Publisher& pub, CMT& cmt){
     pub.publish(pol);
 }
 
+void KFCallback(const Polygon::ConstPtr& p){
+    ROS_INFO("KF Callback");
+    for(int i=2;i<=5;i++){
+        kf_rect[i-2][0] = p->points[i].x;
+        kf_rect[i-2][1] = p->points[i].y;
+        ROS_INFO("Received Vertex: %f,%f",kf_rect[i-2][0],kf_rect[i-2][1]);
+    }
+}
+
+void drawKFRect(Mat& im){
+    for (int i = 0; i < 4; i++){
+        line(im, Point2f(kf_rect[i][0],kf_rect[i][1]), Point2f(kf_rect[(i+1)%4][0],kf_rect[(i+1)%4][1]), Scalar(255,255,0));
+        //ROS_INFO("Drawn Vertex: %f,%f",kf_rect[i][0],kf_rect[i][1]);
+    }
+}
+
 int main(int argc, char *argv[]){
     CMT cmt;
     Rect rect; 
@@ -92,7 +109,7 @@ int main(int argc, char *argv[]){
         screenLog(preview,"Press any key to start specifying the drone to follow");
         imshow(WIN_NAME,preview);
         k = waitKey(10);
-        if(k!=-1)
+        if(k==' ')
             break;
     }
 
@@ -117,6 +134,9 @@ int main(int argc, char *argv[]){
 #ifndef CMT_DISPLAY
     cv::destroyWindow(WIN_NAME);
 #endif
+
+    /* Subscribe to Kalman filter output */
+    ros::Subscriber sub = n.subscribe("/kalman_output",10,KFCallback);
     clock_t begin,end;
     int time_elapsed;
     /* Main loop */
@@ -145,10 +165,12 @@ int main(int argc, char *argv[]){
 
 #ifdef CMT_DISPLAY
         /* Display the image */
+        drawKFRect(im);
         display(im,cmt);
 #endif
         sendtoROS(pub,cmt);
+        ros::spinOnce();
     }
-
+    
     return 0;
 }
