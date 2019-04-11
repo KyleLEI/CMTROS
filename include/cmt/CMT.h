@@ -24,7 +24,7 @@ class CMT
 public:
     CMT() : str_detector("FAST"), str_descriptor("BRISK") {};
     void initialize(const Mat im_gray, const Rect rect);
-    void processFrame(const Mat im_gray);
+    void processFrame(const Mat im_gray, const Mat im_prev);
 
     Fusion fusion;
     Matcher matcher;
@@ -46,8 +46,6 @@ private:
     vector<int> classes_active;
 
     float theta;
-
-    Mat im_prev;
 };
 
 } /* namespace CMT */

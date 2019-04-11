@@ -11,9 +11,6 @@ void CMT::initialize(const Mat im_gray, const Rect rect)
     //Remember initial size
     size_initial = rect.size();
 
-    //Remember initial image
-    im_prev = im_gray;
-
     //Compute center of rect
     Point2f center = Point2f(rect.x + rect.width/2.0, rect.y + rect.height/2.0);
 
@@ -105,7 +102,7 @@ void CMT::initialize(const Mat im_gray, const Rect rect)
 
 }
 
-void CMT::processFrame(Mat im_gray) { // the argument passed is a shallow copy!
+void CMT::processFrame(const Mat im_gray,const Mat im_prev) {
 
 
     //Track keypoints
@@ -171,9 +168,6 @@ void CMT::processFrame(Mat im_gray) { // the argument passed is a shallow copy!
 
     //TODO: Use theta to suppress result
     bb_rot = RotatedRect(center,  size_initial * scale, rotation/CV_PI * 180);
-
-    //Remember current image
-    im_prev = im_gray; // this is also a shallow copy!
 }
 
 } /* namespace CMT */

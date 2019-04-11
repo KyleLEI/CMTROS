@@ -1,5 +1,4 @@
 #define CMT_DISPLAY
-//#define CAM_COLOR
 
 #include "CMT.h"
 #include "gui.h"
@@ -120,13 +119,10 @@ int main(int argc, char *argv[]){
     /* Configure and initialize CMT with grayscale image */
     //cmt.consensus.estimate_scale = false;
     //cmt.consensus.estimate_rotation = true;
-#ifdef CAM_COLOR
+
     Mat im0_gray;
     cvtColor(im0,im0_gray,CV_BGR2GRAY);
     cmt.initialize(im0_gray,rect);
-#else
-    cmt.initialize(im0,rect);
-#endif
 
 #ifndef CMT_DISPLAY
     cv::destroyWindow(WIN_NAME);
@@ -136,26 +132,20 @@ int main(int argc, char *argv[]){
     ros::Subscriber sub = n.subscribe("/kalman_output",10,KFCallback);
     clock_t begin,end;
     int time_elapsed;
+    Mat im,im_prev=im0_gray;
+
     /* Main loop */
     while(ros::ok()){
         /* Read and resize the input frame */
-        Mat im;
         cap >> im;
         resize(im,im,Size(),scale,scale);
 
-#ifdef CAM_COLOR
-        Mat im_gray; // Mat performs shallow copy, has to allocate every time
-        cvtColor(im,im_gray,CV_BGR2GRAY);
-#endif
+        cvtColor(im,im,CV_BGR2GRAY);
 
         /* Process the frame with CMT and log the time */
         // TODO: test whether allocation every loop or clone is faster
         begin = clock();
-#ifdef CAM_COLOR
-        cmt.processFrame(im_gray);
-#else
-        cmt.processFrame(im);
-#endif
+        cmt.processFrame(im,im_prev);
         end = clock();
         time_elapsed = (end-begin)*1.0/CLOCKS_PER_SEC*1000;
         ROS_INFO("Time: %dms, active features: %lu",time_elapsed,cmt.points_active.size());
@@ -166,6 +156,7 @@ int main(int argc, char *argv[]){
         display(im,cmt);
 #endif
         sendtoROS(pub,cmt);
+        cv::swap(im,im_prev);
         ros::spinOnce();
     }
     
