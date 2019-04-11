@@ -112,7 +112,7 @@ int main(int argc, char *argv[]){
 
     /* Get the initial bounding box */
     Mat im0;
-    cap >> im0;
+    cap >> im0;//TODO: verify the shape 8UC3/8UC1?
     resize(im0,im0,Size(),scale,scale);
     rect = getRect(im0,WIN_NAME);
     ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
