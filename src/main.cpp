@@ -97,6 +97,12 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
+    /* Set desired capture properties(320x240@120fps,MJPG) */
+    cap.set(cv::CAP_PROP_FOURCC,cv::VideoWriter::fourcc('M','J','P','G'));
+    cap.set(cv::CAP_PROP_FRAME_WIDTH,320.0);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT,240.0);
+    cap.set(cv::CAP_PROP_FPS,120.0);
+
     /* Initialize the calibration matrix */
     Mat cameraMatrix = Mat::eye(3,3,CV_64F);
     cameraMatrix.at<double>(0,0) = 4.8025052410787254e+02;
@@ -128,7 +134,7 @@ int main(int argc, char *argv[]){
     Mat im0,im0_tmp;
     cap >> im0_tmp;//TODO: verify the shape 8UC3/8UC1?
     cv::undistort(im0_tmp,im0,cameraMatrix,distCoeff);
-    resize(im0,im0,Size(),scale,scale);
+    //resize(im0,im0,Size(),scale,scale);
     rect = getRect(im0,WIN_NAME);
     ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
     
@@ -155,7 +161,7 @@ int main(int argc, char *argv[]){
         /* Read and resize the input frame */
         cap >> im_tmp;
         cv::undistort(im_tmp,im,cameraMatrix,distCoeff);
-        resize(im,im,Size(),scale,scale);
+        //resize(im,im,Size(),scale,scale);
         cvtColor(im,im,CV_BGR2GRAY);
 
         /* Process the frame with CMT and log the time */
