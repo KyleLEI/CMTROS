@@ -26,7 +26,7 @@ using geometry_msgs::Polygon;
 using geometry_msgs::Point32;
 
 const string WIN_NAME = "CMT Node";
-const float scale = 0.75;
+const float scale = 0.5;
 float kf_rect[4][2];
 
 #ifdef CMT_DISPLAY
@@ -97,11 +97,26 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
+    /* Initialize the calibration matrix */
+    Mat cameraMatrix = Mat::eye(3,3,CV_64F);
+    cameraMatrix.at<double>(0,0) = 4.8025052410787254e+02;
+    cameraMatrix.at<double>(1,1) = 4.7946924964527756e+02;
+    cameraMatrix.at<double>(0,2) = 2.9451792432725512e+02;
+    cameraMatrix.at<double>(1,2) = 2.7471736848806802e+02;
+
+    /* Initialize the distortion coefficient */
+    Mat distCoeff = Mat::zeros(4,1,CV_64F);
+    distCoeff.at<double>(0,0) = 1.1577520980447170e-01;
+    distCoeff.at<double>(1,0) = -1.4641950413598775e-01;
+    distCoeff.at<double>(2,0) = -4.4117726647507601e-04;
+    distCoeff.at<double>(3,0) = -2.8091325383948956e-04;
+
     /* Show preview until a key is pressed */
-    Mat preview;
+    Mat preview, preview_tmp;
     char k;
     while(true){
-        cap >> preview;
+        cap >> preview_tmp;
+        cv::undistort(preview_tmp,preview,cameraMatrix,distCoeff);
         screenLog(preview,"Press any key to start specifying the drone to follow");
         imshow(WIN_NAME,preview);
         k = waitKey(10);
@@ -110,8 +125,9 @@ int main(int argc, char *argv[]){
     }
 
     /* Get the initial bounding box */
-    Mat im0;
-    cap >> im0;//TODO: verify the shape 8UC3/8UC1?
+    Mat im0,im0_tmp;
+    cap >> im0_tmp;//TODO: verify the shape 8UC3/8UC1?
+    cv::undistort(im0_tmp,im0,cameraMatrix,distCoeff);
     resize(im0,im0,Size(),scale,scale);
     rect = getRect(im0,WIN_NAME);
     ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
@@ -132,14 +148,14 @@ int main(int argc, char *argv[]){
     ros::Subscriber sub = n.subscribe("/kalman_output",10,KFCallback);
     clock_t begin,end;
     int time_elapsed;
-    Mat im,im_prev=im0_gray;
+    Mat im,im_tmp,im_prev=im0_gray;
 
     /* Main loop */
     while(ros::ok()){
         /* Read and resize the input frame */
-        cap >> im;
+        cap >> im_tmp;
+        cv::undistort(im_tmp,im,cameraMatrix,distCoeff);
         resize(im,im,Size(),scale,scale);
-
         cvtColor(im,im,CV_BGR2GRAY);
 
         /* Process the frame with CMT and log the time */
