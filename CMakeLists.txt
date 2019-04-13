@@ -4,15 +4,19 @@ project(cmt)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
+SET("OpenCV_DIR" "/usr/local/share/OpenCV/")
+
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
   cv_bridge
   sensor_msgs
+  dynamic_reconfigure
 )
 
 find_package(OpenCV 3.4.1 REQUIRED)
-
+message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+generate_dynamic_reconfigure_options(cfg/tuning.cfg)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES cmt
@@ -23,6 +27,7 @@ catkin_package(
 ###########
 ## Build ##
 ###########
+
 
 add_definitions ("-Wall")
 
