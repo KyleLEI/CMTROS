@@ -22,11 +22,11 @@ z_kd = 0
 image_width = 320
 image_height = 240
 
-initialized = false
+initialized = False
 
 def callback(data):
     if not initialized:
-        initialized = true
+        initialized = True
         bounding_box_size = math.sqrt(data.points[1].x*data.points[1].x+data.points[1].y*data.points[1].y)       
  
     cmd.command_type = drone_onboard_command.CTRL_POS_COMMAND
