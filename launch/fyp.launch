@@ -3,4 +3,5 @@
   <node name="kf_main" pkg="cmt" type="kf_main.py" output="screen"/>
   <node pkg="rqt_reconfigure" name="rqt_reconfigure" type="rqt_reconfigure" output="screen"/>
   <node pkg="cmt" name="server_node" type="server_node.py" output="screen"/>
+  <node name="cmt_pid" pkg="cmt" type="pid.py" output="screen"/>
 </launch>

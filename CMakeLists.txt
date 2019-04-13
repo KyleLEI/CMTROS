@@ -9,6 +9,7 @@ SET("OpenCV_DIR" "/usr/local/share/OpenCV/")
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
+  rospy
   cv_bridge
   sensor_msgs
   dynamic_reconfigure
