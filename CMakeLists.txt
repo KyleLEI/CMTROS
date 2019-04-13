@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
 )
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 3.4.1 REQUIRED)
 
 catkin_package(
 #  INCLUDE_DIRS include

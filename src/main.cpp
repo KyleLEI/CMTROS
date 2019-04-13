@@ -8,6 +8,7 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/cudaoptflow.hpp>
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -98,7 +99,7 @@ int main(int argc, char *argv[]){
     }
 
     /* Set desired capture properties(320x240@120fps,MJPG) */
-    cap.set(cv::CAP_PROP_FOURCC,cv::VideoWriter::fourcc('M','J','P','G'));
+    //cap.set(cv::CAP_PROP_FOURCC,cv::VideoWriter::fourcc('M','J','P','G'));
     cap.set(cv::CAP_PROP_FRAME_WIDTH,320.0);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT,240.0);
     cap.set(cv::CAP_PROP_FPS,120.0);
@@ -155,6 +156,8 @@ int main(int argc, char *argv[]){
     clock_t begin,end;
     int time_elapsed;
     Mat im,im_tmp,im_prev=im0_gray;
+    GpuMat im_gpu,im_gpu_prev;
+    im_gpu_prev.upload(im_prev);
 
     /* Main loop */
     while(ros::ok()){
@@ -164,10 +167,12 @@ int main(int argc, char *argv[]){
         //resize(im,im,Size(),scale,scale);
         cvtColor(im,im,CV_BGR2GRAY);
 
+        /* Upload data to GPU */
+        im_gpu.upload(im);
         /* Process the frame with CMT and log the time */
         // TODO: test whether allocation every loop or clone is faster
         begin = clock();
-        cmt.processFrame(im,im_prev);
+        cmt.processFrame(im_gpu,im_gpu_prev);
         end = clock();
         time_elapsed = (end-begin)*1.0/CLOCKS_PER_SEC*1000;
         ROS_INFO("Time: %dms, active features: %lu",time_elapsed,cmt.points_active.size());
@@ -178,7 +183,7 @@ int main(int argc, char *argv[]){
         display(im,cmt);
 #endif
         sendtoROS(pub,cmt);
-        cv::swap(im,im_prev);
+        im_gpu.swap(im_gpu_prev);
         ros::spinOnce();
     }
     

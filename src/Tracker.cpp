@@ -4,7 +4,7 @@
 
 namespace cmt {
 
-void Tracker::track(const Mat im_prev, const Mat im_gray, const vector<Point2f> & points_prev,
+void Tracker::track(const GpuMat im_prev, const GpuMat im_gray, const vector<Point2f> & points_prev,
         vector<Point2f> & points_tracked, vector<unsigned char> & status)
 {
 
@@ -13,14 +13,14 @@ void Tracker::track(const Mat im_prev, const Mat im_gray, const vector<Point2f> 
         vector<float> err; //Needs to be float
 
         //Calculate forward optical flow for prev_location
-        calcOpticalFlowPyrLK(im_prev, im_gray, points_prev, points_tracked, status, err);
+        cuda_of->calc(im_prev, im_gray, points_prev, points_tracked, status, err);
 
         vector<Point2f> points_back;
         vector<unsigned char> status_back;
         vector<float> err_back; //Needs to be float
 
         //Calculate backward optical flow for prev_location
-        calcOpticalFlowPyrLK(im_gray, im_prev, points_tracked, points_back, status_back, err_back);
+        cuda_of->calc(im_gray, im_prev, points_tracked, points_back, status_back, err_back);
 
         //Traverse vector backward so we can remove points on the fly
         for (int i = points_prev.size()-1; i >= 0; i--)

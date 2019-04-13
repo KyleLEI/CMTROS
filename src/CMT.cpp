@@ -102,7 +102,7 @@ void CMT::initialize(const Mat im_gray, const Rect rect)
 
 }
 
-void CMT::processFrame(const Mat im_gray,const Mat im_prev) {
+void CMT::processFrame(const GpuMat im_gray,const GpuMat im_prev) {
 
 
     //Track keypoints

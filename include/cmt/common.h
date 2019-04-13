@@ -7,10 +7,12 @@
 #include <vector>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/core/cuda.hpp>
 
 #include <ros/console.h>
 
 using cv::Mat;
+using cv::cuda::GpuMat;
 using cv::Point2f;
 using cv::Rect;
 using cv::Size2f;

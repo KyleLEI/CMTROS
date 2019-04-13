@@ -24,7 +24,7 @@ class CMT
 public:
     CMT() : str_detector("FAST"), str_descriptor("BRISK") {};
     void initialize(const Mat im_gray, const Rect rect);
-    void processFrame(const Mat im_gray, const Mat im_prev);
+    void processFrame(const GpuMat im_gray, const GpuMat im_prev);
 
     Fusion fusion;
     Matcher matcher;
