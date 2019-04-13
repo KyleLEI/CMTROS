@@ -3,7 +3,7 @@ import roslib
 import sys
 import rospy
 from dynamic_reconfigure.server import Server
-from self_aiming.cfg import tuningConfig
+from cmt_pid.cfg import tuningConfig
 
 
 def callback(config, level):
