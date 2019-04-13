@@ -11,9 +11,13 @@ void Tracker::track(const GpuMat im_prev, const GpuMat im_gray, const vector<Poi
     if (points_prev.size() > 0)
     {
         vector<float> err; //Needs to be float
-
+        /* Convert everything to GpuMat */
+        GpuMat points_prev_gpu(points_prev),points_tracked_gpu(points_tracked),status(status_gpu),err(err_gpu);
         //Calculate forward optical flow for prev_location
-        cuda_of->calc(im_prev, im_gray, points_prev, points_tracked, status, err);
+        cuda_of->calc(im_prev, im_gray, points_prev_gpu, points_tracked_gpu, status_gpu, err_gpu);
+        
+        /* Download useful stuff back to CPU */
+        
 
         vector<Point2f> points_back;
         vector<unsigned char> status_back;
@@ -21,6 +25,8 @@ void Tracker::track(const GpuMat im_prev, const GpuMat im_gray, const vector<Poi
 
         //Calculate backward optical flow for prev_location
         cuda_of->calc(im_gray, im_prev, points_tracked, points_back, status_back, err_back);
+
+        // TODO: download useful stuff back
 
         //Traverse vector backward so we can remove points on the fly
         for (int i = points_prev.size()-1; i >= 0; i--)
