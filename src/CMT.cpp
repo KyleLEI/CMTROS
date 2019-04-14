@@ -2,10 +2,12 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/cudaoptflow.hpp>
+
 
 namespace cmt {
 
-void CMT::initialize(const Mat im_gray, const Rect rect)
+void CMT::initialize(const GpuMat im_gray, const Rect rect)
 {
 
     //Remember initial size
@@ -18,14 +20,8 @@ void CMT::initialize(const Mat im_gray, const Rect rect)
     bb_rot = RotatedRect(center, size_initial, 0.0);
 
     //Initialize detector and descriptor
-#if CV_MAJOR_VERSION > 2
-    detector = cv::FastFeatureDetector::create();
-    //descriptor = cv::BRISK::create();
-    descriptor = cv::ORB::create();
-#else
-    detector = FeatureDetector::create(str_detector);
-    descriptor = DescriptorExtractor::create(str_descriptor);
-#endif
+    detector = FastFeatureDetector::create();
+    descriptor = ORB::create();
 
     //Get initial keypoints in whole image and compute their descriptors
     vector<KeyPoint> keypoints;
@@ -61,10 +57,15 @@ void CMT::initialize(const Mat im_gray, const Rect rect)
     }
 
     //Compute foreground/background features
-    Mat descs_fg;
-    Mat descs_bg;
-    descriptor->compute(im_gray, keypoints_fg, descs_fg);
-    descriptor->compute(im_gray, keypoints_bg, descs_bg);
+    GpuMat descs_fg_gpu;
+    GpuMat descs_bg_gpu;
+    descriptor->compute(im_gray, keypoints_fg, descs_fg_gpu);
+    descriptor->compute(im_gray, keypoints_bg, descs_bg_gpu);
+
+    /* Download descriptors back to CPU */
+    Mat descs_fg,descs_bg;
+    descs_fg_gpu.download(descs_fg);
+    descs_bg_gpu.download(descs_bg);
 
     //Only now is the right time to convert keypoints to points, as compute() might remove some keypoints
     vector<Point2f> points_fg;
@@ -109,11 +110,7 @@ void CMT::processFrame(const GpuMat im_gray,const GpuMat im_prev) {
     vector<Point2f> points_tracked;
     vector<unsigned char> status;
     tracker.track(im_prev, im_gray, points_active, points_tracked, status);
-    printf("Returned from tracker");
 
-    /* Download the frame back to CPU for now */
-    Mat im_gray_cpu;
-    im_gray.download(im_gray_cpu);
     //keep only successful classes
     vector<int> classes_tracked;
     for (size_t i = 0; i < classes_active.size(); i++)
@@ -127,10 +124,12 @@ void CMT::processFrame(const GpuMat im_gray,const GpuMat im_prev) {
 
     //Detect keypoints, compute descriptors
     vector<KeyPoint> keypoints;
-    detector->detect(im_gray_cpu, keypoints);
+    detector->detect(im_gray, keypoints);
 
+    GpuMat descriptors_gpu;
+    descriptor->compute(im_gray, keypoints, descriptors_gpu);
     Mat descriptors;
-    descriptor->compute(im_gray_cpu, keypoints, descriptors);
+    descriptors_gpu.download(descriptors);
 
     //Match keypoints globally
     vector<Point2f> points_matched_global;

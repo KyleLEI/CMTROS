@@ -8,10 +8,11 @@
 #include "Matcher.h"
 #include "Tracker.h"
 
-#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/core/cuda.hpp>
+#include <opencv2/cudafeatures2d.hpp>
 
-using cv::FeatureDetector;
-using cv::DescriptorExtractor;
+using cv::cuda::FastFeatureDetector;
+using cv::cuda::ORB;
 using cv::Ptr;
 using cv::RotatedRect;
 using cv::Size2f;
@@ -22,8 +23,8 @@ namespace cmt
 class CMT
 {
 public:
-    CMT() : str_detector("FAST"), str_descriptor("BRISK") {};
-    void initialize(const Mat im_gray, const Rect rect);
+    CMT(){};
+    void initialize(const GpuMat im_gray, const Rect rect);
     void processFrame(const GpuMat im_gray, const GpuMat im_prev);
 
     Fusion fusion;
@@ -31,15 +32,12 @@ public:
     Tracker tracker;
     Consensus consensus;
 
-    string str_detector;
-    string str_descriptor;
-
     vector<Point2f> points_active; //public for visualization purposes
     RotatedRect bb_rot;
 
 private:
-    Ptr<FeatureDetector> detector;
-    Ptr<DescriptorExtractor> descriptor;
+    Ptr<FastFeatureDetector> detector;
+    Ptr<ORB> descriptor;
 
     Size2f size_initial;
 

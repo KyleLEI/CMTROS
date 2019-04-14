@@ -7,9 +7,6 @@
 #include <vector>
 
 #include <opencv2/core/core.hpp>
-#include <opencv2/core/cuda.hpp>
-
-#include <ros/console.h>
 
 using cv::Mat;
 using cv::cuda::GpuMat;
