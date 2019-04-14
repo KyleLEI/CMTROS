@@ -99,8 +99,8 @@ int main(int argc, char *argv[]){
 
     /* Set desired capture properties(320x240@120fps,MJPG) */
     //cap.set(cv::CAP_PROP_FOURCC,cv::VideoWriter::fourcc('M','J','P','G'));
-    cap.set(cv::CAP_PROP_FRAME_WIDTH,320.0);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT,240.0);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH,640.0);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT,480.0);
     cap.set(cv::CAP_PROP_FPS,30.0);
 
     /* Initialize the calibration matrix */
