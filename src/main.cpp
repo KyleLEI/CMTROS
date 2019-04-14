@@ -98,10 +98,9 @@ int main(int argc, char *argv[]){
     }
 
     /* Set desired capture properties(320x240@120fps,MJPG) */
-    cap.set(cv::CAP_PROP_FOURCC,cv::VideoWriter::fourcc('M','J','P','G'));
-    cap.set(cv::CAP_PROP_FRAME_WIDTH,320.0);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT,240.0);
-    cap.set(cv::CAP_PROP_FPS,120.0);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH,640.0);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT,480.0);
+    cap.set(cv::CAP_PROP_FPS,30.0);
 
     /* Initialize the calibration matrix */
     Mat cameraMatrix = Mat::eye(3,3,CV_64F);
@@ -120,7 +119,7 @@ int main(int argc, char *argv[]){
     /* Show preview until a key is pressed */
     Mat preview, preview_tmp;
     char k;
-    while(true){
+    while(ros::ok()){
         cap >> preview_tmp;
         cv::undistort(preview_tmp,preview,cameraMatrix,distCoeff);
         screenLog(preview,"Press any key to start specifying the drone to follow");
