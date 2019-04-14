@@ -4,10 +4,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/cudaoptflow.hpp>
 
-
 namespace cmt {
 
-void CMT::initialize(const GpuMat im_gray, const Rect rect)
+bool CMT::initialize(const GpuMat im_gray, const Rect rect)
 {
 
     //Remember initial size
@@ -22,7 +21,6 @@ void CMT::initialize(const GpuMat im_gray, const Rect rect)
     //Initialize detector and descriptor
     detector = FastFeatureDetector::create();
     descriptor = ORB::create();
-
     //Get initial keypoints in whole image and compute their descriptors
     vector<KeyPoint> keypoints;
     detector->detect(im_gray, keypoints);
@@ -30,12 +28,11 @@ void CMT::initialize(const GpuMat im_gray, const Rect rect)
     //Divide keypoints into foreground and background keypoints according to selection
     vector<KeyPoint> keypoints_fg;
     vector<KeyPoint> keypoints_bg;
-
+    //FIXME: sometimes this step causes segfault
     for (size_t i = 0; i < keypoints.size(); i++)
     {
         KeyPoint k = keypoints[i];
         Point2f pt = k.pt;
-
         if (pt.x > rect.x && pt.y > rect.y && pt.x < rect.br().x && pt.y < rect.br().y)
         {
             keypoints_fg.push_back(k);
@@ -47,7 +44,9 @@ void CMT::initialize(const GpuMat im_gray, const Rect rect)
         }
 
     }
-
+    if(keypoints_fg.size()==0){
+        return false; // no feature to track
+    }
     //Create foreground classes
     vector<int> classes_fg;
     classes_fg.reserve(keypoints_fg.size());
@@ -100,9 +99,9 @@ void CMT::initialize(const GpuMat im_gray, const Rect rect)
         points_active.push_back(keypoints_fg[i].pt);
         classes_active = classes_fg;
     }
-
+    return true;
 }
-#include <cstdio>
+
 void CMT::processFrame(const GpuMat im_gray,const GpuMat im_prev) {
 
 

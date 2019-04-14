@@ -143,7 +143,13 @@ int main(int argc, char *argv[]){
     Mat im0_gray;
     cvtColor(im0,im0_gray,CV_BGR2GRAY);
     GpuMat im0_gray_gpu(im0_gray);
-    cmt.initialize(im0_gray_gpu,rect);
+    if(!cmt.initialize(im0_gray_gpu,rect)){
+        ROS_ERROR("Not enough feature to track");
+        ros::shutdown();
+        return -1;
+    }
+    else 
+        ROS_INFO("CMT Initialized");
 
 #ifndef CMT_DISPLAY
     cv::destroyWindow(WIN_NAME);

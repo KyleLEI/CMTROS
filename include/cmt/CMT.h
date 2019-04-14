@@ -24,7 +24,7 @@ class CMT
 {
 public:
     CMT(){};
-    void initialize(const GpuMat im_gray, const Rect rect);
+    bool initialize(const GpuMat im_gray, const Rect rect);
     void processFrame(const GpuMat im_gray, const GpuMat im_prev);
 
     Fusion fusion;
