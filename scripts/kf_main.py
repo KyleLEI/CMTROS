@@ -46,14 +46,14 @@ class Subscriber(object):
         super(Subscriber, self).__init__()
         rospy.init_node('kalman_filter_node', anonymous=True)
         self.kalman_filter = Kalman_filter()
-        self.pub_kalman = rospy.Publisher('kalman_output', Polygon)
+        self.pub_kalman = rospy.Publisher('/kalman_output', Polygon,queue_size=1)
 
         rospy.Subscriber('/cmt_node/cmt_output', Polygon, self.callback_cmt)
         rospy.spin()
 
     def callback_cmt(self, data):
         print "received data: ", data
-        if data.points[0].z > 20:
+        if data.points[0].z > 1:
             width = max(abs(data.points[1].x - data.points[0].x), abs(data.points[2].x - data.points[0].x), abs(data.points[3].x - data.points[0].x))
             height = max(abs(data.points[1].y - data.points[0].y), abs(data.points[2].y - data.points[0].y), abs(data.points[3].y - data.points[0].y))
             center_x = min(data.points[0].x, data.points[1].x, data.points[2].x, data.points[3].x) + 0.5 * width

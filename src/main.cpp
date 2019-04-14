@@ -7,8 +7,8 @@
 #include <ctime>
 
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/cudaoptflow.hpp>
+//#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/cudaimgproc.hpp>
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -99,8 +99,8 @@ int main(int argc, char *argv[]){
 
     /* Set desired capture properties(320x240@120fps,MJPG) */
     //cap.set(cv::CAP_PROP_FOURCC,cv::VideoWriter::fourcc('M','J','P','G'));
-    cap.set(cv::CAP_PROP_FRAME_WIDTH,640.0);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT,480.0);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH,320.0);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT,240.0);
     cap.set(cv::CAP_PROP_FPS,30.0);
 
     /* Initialize the calibration matrix */
@@ -141,9 +141,9 @@ int main(int argc, char *argv[]){
     //cmt.consensus.estimate_scale = false;
     //cmt.consensus.estimate_rotation = true;
     Mat im0_gray;
-    cvtColor(im0,im0_gray,CV_BGR2GRAY);
-    GpuMat im0_gray_gpu(im0_gray);
-    if(!cmt.initialize(im0_gray_gpu,rect)){
+    GpuMat im0_gpu(im0);
+    cv::cuda::cvtColor(im0_gpu,im0_gpu,CV_BGR2GRAY);
+    if(!cmt.initialize(im0_gpu,rect)){
         ROS_ERROR("Not enough feature to track");
         ros::shutdown();
         return -1;
@@ -160,17 +160,18 @@ int main(int argc, char *argv[]){
     clock_t begin,end;
     int time_elapsed;
     Mat im,im_tmp,im_prev=im0_gray;
-    GpuMat im_gpu,im_gpu_prev(im_prev);
+    GpuMat im_gpu,im_gpu_prev=im0_gpu;
 
     /* Main loop */
     while(ros::ok()){
         /* Read and resize the input frame */
         cap >> im;
         //cv::undistort(im_tmp,im,cameraMatrix,distCoeff);
-        cvtColor(im,im,CV_BGR2GRAY);
+        //cvtColor(im,im,CV_BGR2GRAY);
 
         /* Upload data to GPU */
         im_gpu.upload(im);
+        cv::cuda::cvtColor(im_gpu,im_gpu,CV_BGR2GRAY);
         /* Process the frame with CMT and log the time */
         begin = clock();
         cmt.processFrame(im_gpu,im_gpu_prev);

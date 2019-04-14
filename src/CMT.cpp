@@ -19,7 +19,7 @@ bool CMT::initialize(const GpuMat im_gray, const Rect rect)
     bb_rot = RotatedRect(center, size_initial, 0.0);
 
     //Initialize detector and descriptor
-    detector = FastFeatureDetector::create(50,true,cv::FastFeatureDetector::TYPE_9_16);
+    detector = FastFeatureDetector::create(30,true,cv::FastFeatureDetector::TYPE_9_16);
     descriptor = ORB::create();
     //Get initial keypoints in whole image and compute their descriptors
     vector<KeyPoint> keypoints;
