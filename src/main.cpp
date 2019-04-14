@@ -92,7 +92,6 @@ int main(int argc, char *argv[]){
     /* Initialize the input device */
     VideoCapture cap;
     cap.open(0); // opens the default camera
-    //cap.open("/home/dji/Desktop/slow.flv");
     if(!cap.isOpened()){
         ROS_ERROR("Unable to open video input");
         return -1;
@@ -100,9 +99,9 @@ int main(int argc, char *argv[]){
 
     /* Set desired capture properties(320x240@120fps,MJPG) */
     //cap.set(cv::CAP_PROP_FOURCC,cv::VideoWriter::fourcc('M','J','P','G'));
-    cap.set(cv::CAP_PROP_FRAME_WIDTH,320.0);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT,240.0);
-    cap.set(cv::CAP_PROP_FPS,120.0);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH,640.0);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT,480.0);
+    cap.set(cv::CAP_PROP_FPS,30.0);
 
     /* Initialize the calibration matrix */
     Mat cameraMatrix = Mat::eye(3,3,CV_64F);
@@ -121,10 +120,10 @@ int main(int argc, char *argv[]){
     /* Show preview until a key is pressed */
     Mat preview, preview_tmp;
     char k;
-    while(true){
+    while(ROS::ok()){
         cap >> preview_tmp;
         cv::undistort(preview_tmp,preview,cameraMatrix,distCoeff);
-        screenLog(preview,"Press any key to start specifying the drone to follow");
+        screenLog(preview,"Press space to select");
         imshow(WIN_NAME,preview);
         k = waitKey(10);
         if(k==' ')
@@ -133,16 +132,14 @@ int main(int argc, char *argv[]){
 
     /* Get the initial bounding box */
     Mat im0,im0_tmp;
-    cap >> im0_tmp;//TODO: verify the shape 8UC3/8UC1?
+    cap >> im0_tmp;
     cv::undistort(im0_tmp,im0,cameraMatrix,distCoeff);
-    //resize(im0,im0,Size(),scale,scale);
     rect = getRect(im0,WIN_NAME);
     ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
     
     /* Configure and initialize CMT with grayscale image */
     //cmt.consensus.estimate_scale = false;
     //cmt.consensus.estimate_rotation = true;
-
     Mat im0_gray;
     cvtColor(im0,im0_gray,CV_BGR2GRAY);
     GpuMat im0_gray_gpu(im0_gray);
@@ -157,21 +154,18 @@ int main(int argc, char *argv[]){
     clock_t begin,end;
     int time_elapsed;
     Mat im,im_tmp,im_prev=im0_gray;
-    GpuMat im_gpu,im_gpu_prev;
-    im_gpu_prev.upload(im_prev);
+    GpuMat im_gpu,im_gpu_prev(im_prev);
 
     /* Main loop */
     while(ros::ok()){
         /* Read and resize the input frame */
         cap >> im_tmp;
         cv::undistort(im_tmp,im,cameraMatrix,distCoeff);
-        //resize(im,im,Size(),scale,scale);
         cvtColor(im,im,CV_BGR2GRAY);
 
         /* Upload data to GPU */
         im_gpu.upload(im);
         /* Process the frame with CMT and log the time */
-        // TODO: test whether allocation every loop or clone is faster
         begin = clock();
         cmt.processFrame(im_gpu,im_gpu_prev);
         end = clock();
@@ -187,6 +181,5 @@ int main(int argc, char *argv[]){
         im_gpu.swap(im_gpu_prev);
         ros::spinOnce();
     }
-    
     return 0;
 }
