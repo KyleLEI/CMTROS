@@ -10,9 +10,9 @@ bridge = CvBridge()
 
 cap = cv2.VideoCapture()
 cap.open(0)
-cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter.fourcc('M','J','P','G'))
-cap.set(cv2.CAP_PROP_FRAME_WIDTH,320.0)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT,240.0)
+# cap.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter.fourcc('M','J','P','G'))
+cap.set(cv2.CAP_PROP_FRAME_WIDTH,640.0)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480.0)
 cap.set(cv2.CAP_PROP_FPS,120.0)
 
 while not rospy.is_shutdown():

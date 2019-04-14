@@ -121,8 +121,8 @@ int main(int argc, char *argv[]){
     Mat preview, preview_tmp;
     char k;
     while(ros::ok()){
-        cap >> preview_tmp;
-        cv::undistort(preview_tmp,preview,cameraMatrix,distCoeff);
+        cap >> preview;
+        //cv::undistort(preview_tmp,preview,cameraMatrix,distCoeff);
         screenLog(preview,"Press space to select");
         imshow(WIN_NAME,preview);
         k = waitKey(10);
@@ -132,8 +132,8 @@ int main(int argc, char *argv[]){
 
     /* Get the initial bounding box */
     Mat im0,im0_tmp;
-    cap >> im0_tmp;
-    cv::undistort(im0_tmp,im0,cameraMatrix,distCoeff);
+    cap >> im0;
+    //cv::undistort(im0_tmp,im0,cameraMatrix,distCoeff);
     rect = getRect(im0,WIN_NAME);
     ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
     
@@ -165,8 +165,8 @@ int main(int argc, char *argv[]){
     /* Main loop */
     while(ros::ok()){
         /* Read and resize the input frame */
-        cap >> im_tmp;
-        cv::undistort(im_tmp,im,cameraMatrix,distCoeff);
+        cap >> im;
+        //cv::undistort(im_tmp,im,cameraMatrix,distCoeff);
         cvtColor(im,im,CV_BGR2GRAY);
 
         /* Upload data to GPU */
