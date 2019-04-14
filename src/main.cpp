@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
     /* Show preview until a key is pressed */
     Mat preview, preview_tmp;
     char k;
-    while(ROS::ok()){
+    while(ros::ok()){
         cap >> preview_tmp;
         cv::undistort(preview_tmp,preview,cameraMatrix,distCoeff);
         screenLog(preview,"Press space to select");
