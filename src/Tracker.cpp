@@ -13,7 +13,7 @@ void Tracker::track(const GpuMat im_prev, const GpuMat im_gray, const vector<Poi
         vector<float> err; //Needs to be float
 
         /* Convert everything to GpuMat */
-        GpuMat points_prev_gpu(points_prev),points_tracked_gpu(points_tracked),status(status_gpu),err(err_gpu);
+        GpuMat points_prev_gpu(points_prev),points_tracked_gpu(points_tracked),status_gpu(status),err_gpu(err);
         //Calculate forward optical flow for prev_location
         cuda_of->calc(im_prev, im_gray, points_prev_gpu, points_tracked_gpu, status_gpu, err_gpu);
         

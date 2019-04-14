@@ -101,7 +101,7 @@ void CMT::initialize(const Mat im_gray, const Rect rect)
     }
 
 }
-
+#include <cstdio>
 void CMT::processFrame(const GpuMat im_gray,const GpuMat im_prev) {
 
 
@@ -109,8 +109,11 @@ void CMT::processFrame(const GpuMat im_gray,const GpuMat im_prev) {
     vector<Point2f> points_tracked;
     vector<unsigned char> status;
     tracker.track(im_prev, im_gray, points_active, points_tracked, status);
+    printf("Returned from tracker");
 
-
+    /* Download the frame back to CPU for now */
+    Mat im_gray_cpu;
+    im_gray.download(im_gray_cpu);
     //keep only successful classes
     vector<int> classes_tracked;
     for (size_t i = 0; i < classes_active.size(); i++)
@@ -124,10 +127,10 @@ void CMT::processFrame(const GpuMat im_gray,const GpuMat im_prev) {
 
     //Detect keypoints, compute descriptors
     vector<KeyPoint> keypoints;
-    detector->detect(im_gray, keypoints);
+    detector->detect(im_gray_cpu, keypoints);
 
     Mat descriptors;
-    descriptor->compute(im_gray, keypoints, descriptors);
+    descriptor->compute(im_gray_cpu, keypoints, descriptors);
 
     //Match keypoints globally
     vector<Point2f> points_matched_global;
