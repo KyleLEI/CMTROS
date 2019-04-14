@@ -19,7 +19,7 @@ bool CMT::initialize(const GpuMat im_gray, const Rect rect)
     bb_rot = RotatedRect(center, size_initial, 0.0);
 
     //Initialize detector and descriptor
-    detector = FastFeatureDetector::create();
+    detector = FastFeatureDetector::create(50,true,cv::FastFeatureDetector::TYPE_9_16);
     descriptor = ORB::create();
     //Get initial keypoints in whole image and compute their descriptors
     vector<KeyPoint> keypoints;
@@ -28,7 +28,6 @@ bool CMT::initialize(const GpuMat im_gray, const Rect rect)
     //Divide keypoints into foreground and background keypoints according to selection
     vector<KeyPoint> keypoints_fg;
     vector<KeyPoint> keypoints_bg;
-    //FIXME: sometimes this step causes segfault
     for (size_t i = 0; i < keypoints.size(); i++)
     {
         KeyPoint k = keypoints[i];

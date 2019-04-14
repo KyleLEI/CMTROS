@@ -135,7 +135,7 @@ int main(int argc, char *argv[]){
     cap >> im0;
     //cv::undistort(im0_tmp,im0,cameraMatrix,distCoeff);
     rect = getRect(im0,WIN_NAME);
-    ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.width,rect.height);
+    ROS_INFO("Using bounding box (%d,%d,%d,%d)",rect.x,rect.y,rect.br().x,rect.br().y);
     
     /* Configure and initialize CMT with grayscale image */
     //cmt.consensus.estimate_scale = false;
